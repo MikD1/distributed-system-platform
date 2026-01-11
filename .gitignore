@@ -1,0 +1,56 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# .NET
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+.vs/
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Docker volumes (local data)
+prometheus-data/
+tempo-data/
+grafana-data/
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/

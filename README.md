@@ -74,7 +74,7 @@ flowchart TB
     Grafana["Grafana"]
     Tempo["Tempo"]
 
-    Api -->|"api"| Pumba
+    Api -->|"run job-container"| Pumba
     Api -->|"run job-container"| K6
     Grafana -->|"query (metrics)"| Prometheus
     Grafana -->|"query (traces)"| Tempo

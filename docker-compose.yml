@@ -1,0 +1,165 @@
+services:
+  # ==================== Infrastructure ====================
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.114.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./Infrastructure/otel-collector/config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus exporter
+      - "13133:13133" # Health check
+    depends_on:
+      - tempo
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=infrastructure"
+    networks:
+      - platform-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:13133/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-remote-write-receiver'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./Infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=infrastructure"
+    networks:
+      - platform-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./Infrastructure/tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"   # Tempo HTTP
+      - "14268:14268" # Jaeger ingest
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=infrastructure"
+    networks:
+      - platform-network
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+    volumes:
+      - ./Infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./Infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - tempo
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=infrastructure"
+    networks:
+      - platform-network
+
+  # ==================== Platform API ====================
+
+  platform-api:
+    build:
+      context: ./src/PlatformApi
+      dockerfile: Dockerfile
+    container_name: platform-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - OpenTelemetry__Endpoint=http://otel-collector:4317
+      - Docker__Host=unix:///var/run/docker.sock
+      - Docker__NetworkName=distributed-system-platform_platform-network
+      - K6_SCRIPTS_PATH=${PWD}/k6/scripts
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "5050:8080"
+    depends_on:
+      - otel-collector
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=management"
+    networks:
+      - platform-network
+
+  # ==================== HelloWorld Example Services ====================
+
+  service-a:
+    build:
+      context: ./src/Examples/HelloWorld/ServiceA
+      dockerfile: Dockerfile
+    container_name: service-a
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ServiceB__Url=http://service-b:8080
+      - OpenTelemetry__Endpoint=http://otel-collector:4317
+    ports:
+      - "8081:8080"
+    depends_on:
+      - otel-collector
+      - service-b
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=application"
+      - "service=service-a"
+    networks:
+      - platform-network
+
+  service-b:
+    build:
+      context: ./src/Examples/HelloWorld/ServiceB
+      dockerfile: Dockerfile
+    container_name: service-b
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - OpenTelemetry__Endpoint=http://otel-collector:4317
+    ports:
+      - "8082:8080"
+    depends_on:
+      - otel-collector
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=application"
+      - "service=service-b"
+    networks:
+      - platform-network
+
+networks:
+  platform-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  tempo-data:
+  grafana-data:
