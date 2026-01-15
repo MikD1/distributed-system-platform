@@ -1384,13 +1384,51 @@
         "type": "tempo",
         "uid": "tempo"
       },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 10,
+        "h": 8,
         "w": 24,
         "x": 0,
         "y": 42
       },
-      "id": 19,
+      "id": 20,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
       "pluginVersion": "11.3.0",
       "targets": [
         {
@@ -1398,17 +1436,37 @@
             "type": "tempo",
             "uid": "tempo"
           },
+          "filters": [
+            {
+              "id": "a10878cc",
+              "operator": "=",
+              "scope": "span"
+            },
+            {
+              "id": "service-name",
+              "operator": "=",
+              "scope": "resource",
+              "tag": "service.name",
+              "value": [
+                "platform-api"
+              ],
+              "valueType": "string"
+            }
+          ],
           "limit": 20,
-          "queryType": "nativeSearch",
+          "query": "{resource.service.name=\"$service\"}",
+          "queryType": "traceql",
           "refId": "A",
-          "serviceName": "$service"
+          "tableType": "traces"
         }
       ],
-      "title": "Recent Traces",
-      "type": "traces"
+      "title": "Traces",
+      "type": "table"
     }
   ],
-  "schemaVersion": 39,
+  "preload": false,
+  "refresh": "1s",
+  "schemaVersion": 40,
   "tags": [
     "distributed-system-platform",
     "service-detail"
@@ -1416,16 +1474,17 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "text": "platform-api",
+          "value": "platform-api"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
         "definition": "label_values(http_server_request_duration_seconds_count, service_name)",
-        "hide": 0,
         "includeAll": false,
         "label": "Service",
-        "multi": false,
         "name": "service",
         "options": [],
         "query": {
@@ -1434,14 +1493,13 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -1454,6 +1512,6 @@
   "timezone": "browser",
   "title": "Service Detail",
   "uid": "dsp-service-detail",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
