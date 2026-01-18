@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -45,6 +46,8 @@ app.MapPost("/api/message-a", async (IHttpClientFactory httpClientFactory) =>
     response.EnsureSuccessStatusCode();
     return Results.Ok();
 });
+
+app.MapPost("/api/error", Results.StatusCode);
 
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -36,5 +36,4 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapPost("/api/message-b", () => Results.Ok());
-app.MapGet("/health", () => Results.Ok("healthy"));
 app.Run();
