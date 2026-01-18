@@ -1,11 +1,12 @@
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetry.Metrics;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-var otelEndpoint = builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://otel-collector:4317";
-
+string otelEndpoint = builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://otel-collector:4317";
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
         .AddService(
@@ -18,10 +19,7 @@ builder.Services.AddOpenTelemetry()
         }))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(otelEndpoint);
-        }))
+        .AddOtlpExporter(options => { options.Endpoint = new(otelEndpoint); }))
     .WithMetrics(metrics => metrics
         .AddMeter("Microsoft.AspNetCore.Hosting")
         .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
@@ -29,21 +27,14 @@ builder.Services.AddOpenTelemetry()
         .AddRuntimeInstrumentation()
         .AddOtlpExporter((exporterOptions, metricReaderOptions) =>
         {
-            exporterOptions.Endpoint = new Uri(otelEndpoint);
+            exporterOptions.Endpoint = new(otelEndpoint);
             metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
         }));
 
-var app = builder.Build();
+WebApplication app = builder.Build();
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.MapPost("/api/process", (ProcessRequest request) =>
-{
-    var result = $"Processed: {request.Data} at {DateTime.UtcNow:O}";
-    return Results.Ok(new ProcessResponse(result));
-});
-
+app.MapPost("/api/message-b", () => Results.Ok());
 app.MapGet("/health", () => Results.Ok("healthy"));
-
 app.Run();
-
-record ProcessRequest(string Data);
-record ProcessResponse(string Result);

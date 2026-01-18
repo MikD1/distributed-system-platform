@@ -160,3 +160,41 @@ flowchart TB
 - Принимает трейсы от OpenTelemetry Collector
 - Хранит трейсы локально (volume)
 - Интегрирован с Grafana для просмотра цепочек вызовов и поиска по trace/span
+
+## Демонстрация
+
+Для демонстрации работы платформы реализованы два сервиса
+
+- ServiceA
+  - Port: 10001
+  - API
+    - POST: /api/message-a
+    - POST: /api/error
+- ServiceB
+  - Port: 10002
+  - API
+    - POST: /api/message-b
+
+```mermaid
+flowchart LR
+  Client{{Client}}
+  ServiceA["ServiceA"]
+  ServiceB["ServiceB"]
+
+  Client -->|/api/message-a| ServiceA
+  ServiceA -->|/api/message-b| ServiceB
+```
+
+### Быстрый запуск
+
+1. Запустить платформу `docker compose up -d`
+2. Запустить генерацию траффика
+```
+POST: http://localhost:5050/api/traffic/start
+{
+  "targetUrl": "http://service-a/api/message-a",
+  "rps": 10,
+  "durationSeconds": 300
+}
+```
+3. Наблюдать телеметрию сервисов в Grafana по адресу: `http://localhost:3000/d/dsp-service-detail/service-detail`

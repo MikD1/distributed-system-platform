@@ -116,14 +116,13 @@ services:
 
   service-a:
     build:
-      context: ./src/Examples/HelloWorld/ServiceA
+      context: ./Examples/HelloWorld/ServiceA
       dockerfile: Dockerfile
     container_name: service-a
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ServiceB__Url=http://service-b:8080
+      - ServiceB__Url=http://service-b
     ports:
-      - "8081:8080"
+      - "10001:80"
     depends_on:
       - otel-collector
       - service-b
@@ -136,13 +135,11 @@ services:
 
   service-b:
     build:
-      context: ./src/Examples/HelloWorld/ServiceB
+      context: ./Examples/HelloWorld/ServiceB
       dockerfile: Dockerfile
     container_name: service-b
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
     ports:
-      - "8082:8080"
+      - "10002:80"
     depends_on:
       - otel-collector
     labels:

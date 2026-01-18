@@ -24,7 +24,7 @@ export const options = {
 };
 
 export default function () {
-  const targetUrl = __ENV.TARGET_URL || 'http://service-a:8080/api/hello';
+  const targetUrl = __ENV.TARGET_URL;
   const payload = __ENV.PAYLOAD || JSON.stringify({ message: 'Hello from k6!' });
 
   const params = {
