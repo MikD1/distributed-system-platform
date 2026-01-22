@@ -11,7 +11,11 @@ builder.Services.AddSwaggerGen();
 string serviceBUrl = builder.Configuration["ServiceB:Url"]!;
 string otelEndpoint = builder.Configuration["OpenTelemetry:Endpoint"]!;
 
-builder.Services.AddHttpClient("ServiceB", client => { client.BaseAddress = new(serviceBUrl); });
+builder.Services.AddHttpClient("ServiceB", client =>
+{
+    client.BaseAddress = new(serviceBUrl);
+    client.Timeout = TimeSpan.FromSeconds(1);
+});
 
 Meter meter = new("DeliveryGuarantees.ServiceA", "1.0.0");
 Counter<long> messagesSentCounter = meter.CreateCounter<long>("delivery_messages_sent_total");
