@@ -1,6 +1,4 @@
 services:
-  # ==================== Infrastructure ====================
-
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.114.0
     container_name: otel-collector
@@ -88,8 +86,6 @@ services:
     networks:
       - platform-network
 
-  # ==================== Platform API ====================
-
   platform-api:
     build:
       context: ./src/PlatformApi
@@ -98,7 +94,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Docker__Host=unix:///var/run/docker.sock
-      - Docker__NetworkName=distributed-system-platform_platform-network
+      - Docker__NetworkName=platform-net
       - K6_SCRIPTS_PATH=${PWD}/k6/scripts
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -112,82 +108,9 @@ services:
     networks:
       - platform-network
 
-  # ==================== HelloWorld Example Services ====================
-
-  service-a:
-    build:
-      context: ./Examples/HelloWorld/ServiceA
-      dockerfile: Dockerfile
-    container_name: service-a
-    environment:
-      - ServiceB__Url=http://service-b
-    ports:
-      - "10001:80"
-    depends_on:
-      - otel-collector
-      - service-b
-    labels:
-      - "platform=distributed-system-platform"
-      - "type=application"
-      - "service=service-a"
-    networks:
-      - platform-network
-
-  service-b:
-    build:
-      context: ./Examples/HelloWorld/ServiceB
-      dockerfile: Dockerfile
-    container_name: service-b
-    ports:
-      - "10002:80"
-    depends_on:
-      - otel-collector
-    labels:
-      - "platform=distributed-system-platform"
-      - "type=application"
-      - "service=service-b"
-    networks:
-      - platform-network
-
-  # ==================== DeliveryGuarantees Example Services ====================
-
-  delivery-sender:
-    build:
-      context: ./Examples/DeliveryGuarantees/ServiceA
-      dockerfile: Dockerfile
-    container_name: delivery-sender
-    environment:
-      - ServiceB__Url=http://delivery-receiver
-    ports:
-      - "10011:80"
-    depends_on:
-      - otel-collector
-      - delivery-receiver
-    labels:
-      - "platform=distributed-system-platform"
-      - "type=application"
-      - "service=delivery-sender"
-    networks:
-      - platform-network
-
-  delivery-receiver:
-    build:
-      context: ./Examples/DeliveryGuarantees/ServiceB
-      dockerfile: Dockerfile
-    container_name: delivery-receiver
-    ports:
-      - "10012:80"
-    depends_on:
-      - otel-collector
-    labels:
-      - "platform=distributed-system-platform"
-      - "type=application"
-      - "service=delivery-receiver"
-    networks:
-      - platform-network
-
 networks:
   platform-network:
+    name: platform-net
     driver: bridge
 
 volumes:

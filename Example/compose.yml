@@ -1,0 +1,35 @@
+services:
+  service-a:
+    build:
+      context: ./ServiceA
+      dockerfile: Dockerfile
+    container_name: service-a
+    environment:
+      - ServiceB__Url=http://service-b
+    ports:
+      - "10001:80"
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=application"
+      - "service=service-a"
+    networks:
+      - platform-network
+
+  service-b:
+    build:
+      context: ./ServiceB
+      dockerfile: Dockerfile
+    container_name: service-b
+    ports:
+      - "10002:80"
+    labels:
+      - "platform=distributed-system-platform"
+      - "type=application"
+      - "service=service-b"
+    networks:
+      - platform-network
+
+networks:
+  platform-network:
+    external: true
+    name: platform-net

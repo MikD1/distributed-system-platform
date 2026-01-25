@@ -162,34 +162,28 @@ flowchart TB
 - Хранит трейсы локально (volume)
 - Интегрирован с Grafana для просмотра цепочек вызовов и поиска по trace/span
 
-## Демонстрация
+## Быстрый запуск
 
-Для демонстрации работы платформы реализованы два сервиса
+#### 1. Запустить платформу
 
-- ServiceA
-  - Port: 10001
-  - API
-    - POST: /api/message-a
-    - POST: /api/error
-- ServiceB
-  - Port: 10002
-  - API
-    - POST: /api/message-b
-
-```mermaid
-flowchart LR
-  Client{{Client}}
-  ServiceA["ServiceA"]
-  ServiceB["ServiceB"]
-
-  Client -->|/api/message-a| ServiceA
-  ServiceA -->|/api/message-b| ServiceB
+```bash
+docker compose up -d
 ```
 
-### Быстрый запуск
+Платформа будет доступна:
+- **Platform API (Swagger)**: http://localhost:5050/swagger/index.html
+- **Grafana**: http://localhost:3000
+- **Prometheus**: http://localhost:9090
 
-1. Запустить платформу `docker compose up -d`
-2. Запустить генерацию траффика
+#### 2. Запустить пример (опционально)
+
+```bash
+cd Example
+docker compose up -d
+```
+
+#### 3. Запустить генерацию трафика
+
 ```
 POST: http://localhost:5050/api/traffic/start
 {
@@ -198,4 +192,8 @@ POST: http://localhost:5050/api/traffic/start
   "durationSeconds": 300
 }
 ```
-3. Наблюдать телеметрию сервисов в Grafana по адресу: `http://localhost:3000/d/dsp-service-detail/service-detail`
+
+#### 4. Наблюдать телеметрию
+
+- Service Detail: http://localhost:3000/d/dsp-service-detail/service-detail
+- Node graph: http://localhost:3000/explore?schemaVersion=1&panes=%7B%22rm8%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22serviceMap%22,%22limit%22:20,%22tableType%22:%22traces%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D%7D&orgId=1
