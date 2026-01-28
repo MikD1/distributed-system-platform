@@ -60,14 +60,14 @@ services:
 
   platform-api:
     build:
-      context: ./src/PlatformApi
+      context: ./PlatformApi
       dockerfile: Dockerfile
     container_name: platform-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Docker__Host=unix:///var/run/docker.sock
       - Docker__NetworkName=platform-net
-      - K6_SCRIPTS_PATH=${PWD}/k6/scripts
+      - K6_SCRIPTS_PATH=${PWD}/Infrastructure/k6/scripts
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
